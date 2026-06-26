@@ -1,0 +1,3 @@
+# Sanitized JSON fixtures recorded from real `az` output go here.
+# Load them in tests via the `fixture_loader` fixture (see tests/conftest.py).
+# The conftest GUID guard rejects any unscrubbed subscription/tenant GUIDs.

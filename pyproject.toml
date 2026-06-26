@@ -1,0 +1,106 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "azaks-bastion"
+dynamic = ["version"]
+description = "Open an Azure Bastion tunnel to a private AKS API server or jump host."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Naeem Hossain", email = "naeemhossain.mail@gmail.com" }]
+keywords = ["azure", "cli", "devops"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: System :: Systems Administration",
+]
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.7",
+  # TODO: add tool-specific Azure SDK or other runtime deps here
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "pytest-mock>=3.12",
+  "ruff>=0.5",
+  "mypy>=1.10",
+  "pre-commit>=3.7",
+  # If this tool will hit HTTP directly (azure-keyvault-*, azure-mgmt-*),
+  # uncomment the next two for VCR-cassette replay tests:
+  # "pytest-recording>=0.13",
+  # "vcrpy>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/NaeemH/azaks-bastion"
+Repository = "https://github.com/NaeemH/azaks-bastion"
+Issues = "https://github.com/NaeemH/azaks-bastion/issues"
+
+[project.scripts]
+azaks-bastion = "azaks_bastion.cli:app"
+aksb = "azaks_bastion.cli:app"
+
+[tool.hatch.version]
+path = "src/azaks_bastion/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/azaks_bastion"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "W",   # pycodestyle warnings
+  "F",   # pyflakes
+  "I",   # isort
+  "B",   # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "UP",  # pyupgrade
+  "N",   # pep8-naming
+  "ARG", # flake8-unused-arguments
+  "SIM", # flake8-simplify
+]
+ignore = ["E501"] # handled by formatter
+
+[tool.ruff.lint.per-file-ignores]
+# Pytest fixtures appear as "unused" parameters because their side effects
+# (monkeypatching, mocking) are what's wanted, not their return value. Same
+# for stub functions that must match a third-party signature.
+"tests/**" = ["ARG001"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra --strict-markers --cov=azaks_bastion --cov-report=term-missing"
+testpaths = ["tests"]
+# Uncomment when pytest-recording is enabled in [optional-dependencies].dev:
+# markers = [
+#   "vcr: marks tests that replay HTTP cassettes recorded by pytest-recording",
+# ]

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "prod-hub-bastion",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/prod-hub-neu-rg/providers/Microsoft.Network/bastionHosts/prod-hub-bastion",
+    "location": "northeurope",
+    "resourceGroup": "prod-hub-neu-rg",
+    "sku": { "name": "Standard" },
+    "dnsName": "bst-00000000-0000-0000-0000-000000000000.bastion.azure.com"
+  },
+  {
+    "name": "prod-hub-bastion-weu",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/prod-hub-weu-rg/providers/Microsoft.Network/bastionHosts/prod-hub-bastion-weu",
+    "location": "westeurope",
+    "resourceGroup": "prod-hub-weu-rg",
+    "sku": { "name": "Basic" }
+  }
+]

@@ -155,8 +155,14 @@ def test_list_derives_rg_from_id(fake_az: Any) -> None:
 
 @pytest.fixture()
 def fake_local_bin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """A fake HOME whose ~/.local/bin holds an installed console script."""
+    """A fake HOME whose ~/.local/bin holds an installed console script.
+
+    Path.home() reads $HOME only on POSIX; on Windows it resolves USERPROFILE,
+    so patching Path.home directly is the only redirect that holds everywhere.
+    """
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setattr(Path, "home", classmethod(lambda _cls: tmp_path))
     local_bin = tmp_path / ".local" / "bin"
     local_bin.mkdir(parents=True)
     (local_bin / "azaks-bastion").write_text("#!/bin/sh\n")
@@ -164,7 +170,9 @@ def fake_local_bin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 def test_path_hint_when_local_bin_missing_from_path(fake_local_bin: Path) -> None:
-    hint = _path_hint("/usr/bin:/bin")
+    # _path_hint splits on os.pathsep, which is ";" on Windows - a hard-coded
+    # POSIX PATH would arrive as one entry and the hint would never fire.
+    hint = _path_hint(os.pathsep.join(["/usr/bin", "/bin"]))
     assert hint is not None
     assert "pipx ensurepath" in hint
     assert str(fake_local_bin) in hint
@@ -184,6 +192,8 @@ def test_path_hint_none_when_not_installed_there(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setattr(Path, "home", classmethod(lambda _cls: tmp_path))
     (tmp_path / ".local" / "bin").mkdir(parents=True)
     assert _path_hint("/usr/bin") is None
 
@@ -191,7 +201,7 @@ def test_path_hint_none_when_not_installed_there(
 def test_root_prints_hint_to_output(
     fake_local_bin: Path, fake_az: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    monkeypatch.setenv("PATH", os.pathsep.join(["/usr/bin", "/bin"]))
     fake_az([[]])
     result = runner.invoke(app, ["list"])
     assert result.exit_code == 0
